@@ -55,6 +55,7 @@
     (loop [start 1/1]
       (if (f start) start
           (recur (improve start))))))
+
 ;; 3.5 Concabs
 (defn survives? [pos size]
   ;; (println (str "Size: " size ", position: " pos))
