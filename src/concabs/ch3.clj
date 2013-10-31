@@ -73,6 +73,14 @@
     (loop [pos size survivors nil]
       (if (>= pos 1)
         (recur (dec pos) (if (survives? pos size)
-                           (cons pos survivors)
+                           (conj survivors pos)
                            survivors))
         (println (str "Survivors: " (clojure.string/join ", " survivors)))))))
+
+;; Exercise 3.17 Concabs
+(defn falling-factorial [n k]
+  "Calculate the falling factorial of n falling k"
+  (loop [acc 1 n n k k]
+    (if (zero? k) acc
+        (recur (* acc n) (dec n) (dec k)))))
+
