@@ -97,15 +97,16 @@
 ;; improved/replaced with a logarithmic time iterative version
 (defn mod-expt-4 [b e m]
   "Modular exponentiation, logarithmic recursion - O(log e) memory/space, O(log e) time"
-  (println (str "e: " e))
   (cond (zero? e) 1
         (even? e) (let [half (mod-expt-4 b (/ e 2) m)]
                     (mod* half half m))
         :else (mod* (mod-expt-4 b (dec e) m) b m)))
 
-;; Exercise 4.4, the final, logarithmic time iterative version. e is decrememnted by
+;; Exercise 4.4, the final, logarithmic time iterative version. e is decremented by
 ;; 1 initially to prevent the extra multiplation step
-;; (b3 * (b1 * b1) * b0) <-- We do not want that 0
+;; (b3 * (b1 * b1) * b0) <-- We do not want that 0 because when b2 is
+;; reduced to (b1 * b1) we have no multiplications left to do, so we
+;; settle for ((b1 * b1) * b0) instead
 (defn mod-expt [b e m]
   "Modular exponentiation, logarithmic iteration - O(1) memory/space, O(log e) time"
   (loop [a 1
