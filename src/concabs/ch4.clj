@@ -107,11 +107,31 @@
 ;; (b3 * (b1 * b1) * b0) <-- We do not want that 0 because when b2 is
 ;; reduced to (b1 * b1) we have no multiplications left to do, so we
 ;; settle for ((b1 * b1) * b0) instead
+;; (defn mod-expt [b e m]
+;;   "Modular exponentiation, logarithmic iteration - O(1) memory/space, O(log e) time"
+;;   (loop [a 1
+;;          e e]
+;;     (cond (zero? e) a
+;;           (even? e) (recur (mod* a (mod* b b m) m) (/ e 2))
+;;           :else (recur (mod* a b m) (dec e)))))
+
+;; (defn mod-expt-final-old [b e m]
+;;   (if (even? e)
+;;     (let [pair (mod* b b m)]
+;;       (loop [iter (/ e 2)
+;;              a 1]
+;;         (if (zero? iter) a
+;;             (recur (dec iter) (mod* a pair)))))
+;;       (mod* b (mod-expt-final b (dec e) m) m)))
+
 (defn mod-expt [b e m]
   "Modular exponentiation, logarithmic iteration - O(1) memory/space, O(log e) time"
   (loop [a 1
-         e (dec e)]
+         e e
+         b b]
     (cond (zero? e) a
-          (even? e) (recur (mod* a (mod* b b m) m) (/ e 2))
-          :else (recur (mod* a b m) (dec e)))))
-
+          (even? e)
+          (let [iter (/ e 2)
+                p (mod* b b m)]
+            (recur (mod* a p m) (dec iter) p))
+          :else (recur (mod* a b m) (dec e) b))))
