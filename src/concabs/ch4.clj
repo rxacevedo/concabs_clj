@@ -82,7 +82,7 @@
 ;; This version is tree-recursive, but tree depth will only
 ;; be O(log e) because e is halved each time
 (defn mod-expt-3 [b e m]
-  "Modular exponentiation, tree-recursive - O(log e) memory/space, O(e) time"
+  "Modular exponentiation, tree-recursive - O(log e) memory/space, O(e) time (2e-1 multiplications)"
   (cond (zero? e) 1
         (even? e) (mod*
                    (mod-expt-3 b (/ e 2) m)
@@ -98,7 +98,7 @@
 (defn mod-expt-4 [b e m]
   "Modular exponentiation, logarithmic recursion - O(log e) memory/space, O(log e) time"
   (cond (zero? e) 1
-        (even? e) (let [half (mod-expt-4 b (/ e 2) m)]
+        (even? e) (let [half (mod-expt-4 b (/ e 2) m)] ;; Beautiful.
                     (mod* half half m))
         :else (mod* (mod-expt-4 b (dec e) m) b m)))
 
@@ -124,6 +124,8 @@
 ;;             (recur (dec iter) (mod* a pair)))))
 ;;       (mod* b (mod-expt-final b (dec e) m) m)))
 
+;; TODO: This is slower than mod-expt-4, why? Maybe consider what
+;; happens when (mod e 2) is zero.
 (defn mod-expt [b e m]
   "Modular exponentiation, logarithmic iteration - O(1) memory/space, O(log e) time"
   (loop [a 1
