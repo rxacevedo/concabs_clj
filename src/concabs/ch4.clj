@@ -1,6 +1,8 @@
 (ns concabs.ch4
   (:gen-class)
-  (:require [clojure.math.numeric-tower :as math]))
+  (:require [clojure.math.numeric-tower :as math])
+  (:import [javax.swing JPanel JFrame]
+           [java.awt Dimension]))
 
 ;; Modular arithmetic
 ;; For each non-negative integer x, x mod m is the unique remainder r
@@ -137,3 +139,68 @@
                 p (mod* b b m)]
             (recur (mod* a p m) (dec iter) p))
           :else (recur (mod* a b m) (dec e) b))))
+
+;; Fractal stuff goes here
+
+(defn make-panel []
+  (let [panel (proxy [JPanel] []
+                (paintComponent [g]
+                  (.drawLine g 0 0 100 100)))]
+    (doto panel
+      (.setPreferredSize (Dimension. 400 400)))))
+ 
+(defn make-frame [panel]
+  (doto (new JFrame)
+    (.add panel)
+    .pack
+    .show))
+
+;; Excercise 4.12
+;; There are three cases to consider for this exercise:
+;; i. When m^2 > n, there are 0 ways to factor n using numbers no
+;; smaller than m.
+;; ii. When n is not divisible by m, then the number of ways to factor
+;; n using numbers no smaller than m is the same as the number of ways
+;; to factor n using numbers no smaller than m + 1 (because you are
+;; using the same set of numbers to factor except you are leaving out
+;; m, which was not a divisor of n anyways).
+;; iii. When m^2 <= n, there is at least one way to factor n using
+;; numbers no smaller than m (m and n/m).
+(defn ways-to-factor-using-no-smaller-than [n m]
+  (loop [acc 0
+         x n
+         y m]
+       (cond (> (math/expt y 2) x) acc
+          (zero? (mod x y)) (let [sub-factors (ways-to-factor-using-no-smaller-than (/ x y) y)]
+                              (recur (+ (inc acc) sub-factors) x (inc y)))
+          :else (recur acc x (inc y)))))
+
+(defn ways-to-factor [n]
+  (ways-to-factor-using-no-smaller-than n 2))
+
+;; Exercise 4.15
+;; (This is probably over-repetitious)
+(defn max-weighings [coll]
+  "Returns the number of weighings to determine which coin is fake (exercise 4.15)"
+  (loop [acc 0
+         curr_coll coll]
+    (cond (= 1 (count curr_coll)) acc
+          (even? (count curr_coll))
+          (let [mid (/ (count curr_coll) 2)
+                left (take mid curr_coll)
+                right (drop mid curr_coll)
+                lweight (reduce + left)
+                rweight (reduce + right)]
+            (prn left right)
+            (recur (inc acc) (if (< lweight rweight) left
+                                 right)))
+          :else
+          (let [[head & tail] curr_coll
+                mid (/ (count tail) 2)
+                left (take mid tail)
+                right (drop mid tail)
+                lweight (reduce + left)
+                rweight (reduce + right)]
+            (prn left right)
+            (recur (inc acc) (if (< lweight rweight) left
+                                 right))))))
