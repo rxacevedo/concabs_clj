@@ -171,7 +171,9 @@
          x n
          y m]
        (cond (> (math/expt y 2) x) acc
-          (zero? (mod x y)) (let [sub-factors (ways-to-factor-using-no-smaller-than (/ x y) y)]
+             (zero? (mod x y))
+                    (let [sub-factors (ways-to-factor-using-no-smaller-than (/ x y) y)]
+                              (println (str x " divides " y ", calculate factors of " (/ x y)))
                               (recur (+ (inc acc) sub-factors) x (inc y)))
           :else (recur acc x (inc y)))))
 
@@ -204,3 +206,21 @@
             (prn left right)
             (recur (inc acc) (if (< lweight rweight) left
                                  right))))))
+
+(defn max-weighings-thirds [coll]
+  (loop [acc 0
+         curr_coll coll]
+    (Thread/sleep 100)
+    (let [sz (count curr_coll)
+          r (mod sz 3)
+          sum #(reduce + %)]
+      (cond (= 1 (count curr_coll)) acc
+            (zero? r) (let [[p1 p2 p3] (partition 3 curr_coll)]
+                      (prn p1 p2 p3)
+                      (cond (> (sum p1) (sum p2)) (recur (inc acc) p2)
+                            (< (sum p1) (sum p2)) (recur (inc acc) p1)
+                            :else (recur (inc acc) p3)))
+            :else (let [rcoll (drop (- sz r) curr_coll)
+                        [p2 p3] (partition 3 (drop (+ r 3) curr_coll))
+                        p1 (take (+ r 3) curr_coll)]
+                    (prn p1 p2 p3))))))
