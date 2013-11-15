@@ -244,16 +244,19 @@
                           :else (recur (inc acc) p3)))))))
 
 ;; Exercise 4.18
-;; This doesn't work as it just keeps computing differences of numbers
-;; which never have a difference of 1 (returns Rational types)
 (defn sum-ints [a b]
-  (if (= 1 (- b a)) 0
-      (let [interval (- b a)
-            mid (/ interval 2)
-            a1 a
-            b1 mid
-            a2 (inc mid)
-            b2 b]
-        (prn a1 b1 a2 b2)
-        (+ (sum-ints a1 b1) (sum-ints a2 b2)))))
+  "Returns the sum of the integers from a to b, or
+   (reduce + (range a (inc b)))"
+  (let [range (- b a)]
+    (cond (zero? (- b a)) a
+          (zero? (mod range 2))(let [a1 a
+                                     b1 (+ a (/ range 2))
+                                     a2 (inc b1)
+                                     b2 b]
+                                 (+ (sum-ints a1 b1) (sum-ints a2 b2)))
+          :else                (let [a1 a
+                                     b1 (+ a (/ (dec range) 2))
+                                     a2 (inc b1)
+                                     b2 b]
+                                 (+ (sum-ints a1 b1) (sum-ints a2 b2))))))
 
