@@ -142,18 +142,21 @@
 
 ;; Fractal stuff goes here
 
-(defn make-panel []
-  (let [panel (proxy [JPanel] []
-                (paintComponent [g]
-                  (.drawLine g 0 0 100 100)))]
-    (doto panel
-      (.setPreferredSize (Dimension. 400 400)))))
+;; (defn draw-rec [level]
+;;   (let [panel (proxy [JPanel] []
+;;                 (paintComponent [g]
+;;                   (loop [x1 0 y1 0 x2 100 y2 100 lvl level]
+;;                     (if (zero? lvl) 
+;;                       (.drawLine g x1 y1 x2 y2)
+;;                       (recur (inc x1) (inc y1) (inc x2) (inc y2) (dec level))))))]
+;;     (doto panel
+;;       (.setPreferredSize (Dimension. 400 400)))))
  
-(defn make-frame [panel]
-  (doto (new JFrame)
-    (.add panel)
-    .pack
-    .show))
+;; (defn make-frame [panel]
+;;   (doto (new JFrame)
+;;     (.add panel)
+;;     .pack
+;;     .show))
 
 ;; Excercise 4.12
 ;; There are three cases to consider for this exercise:
@@ -207,6 +210,8 @@
             (recur (inc acc) (if (< lweight rweight) left
                                  right))))))
 
+;; TODO: This is NOT RIGHT, cannot always partition by 3, need to
+;; determine if modulus is 0 and if so then partition by (/ coll_sz 3;)
 (defn max-weighings-thirds [coll]
   (loop [acc 0
          curr_coll coll]
@@ -214,13 +219,41 @@
     (let [sz (count curr_coll)
           r (mod sz 3)
           sum #(reduce + %)]
-      (cond (= 1 (count curr_coll)) acc
-            (zero? r) (let [[p1 p2 p3] (partition 3 curr_coll)]
-                      (prn p1 p2 p3)
-                      (cond (> (sum p1) (sum p2)) (recur (inc acc) p2)
-                            (< (sum p1) (sum p2)) (recur (inc acc) p1)
-                            :else (recur (inc acc) p3)))
-            :else (let [rcoll (drop (- sz r) curr_coll)
-                        [p2 p3] (partition 3 (drop (+ r 3) curr_coll))
-                        p1 (take (+ r 3) curr_coll)]
-                    (prn p1 p2 p3))))))
+      (println (str "r: " r))
+      (cond (or (= 1 sz) (nil? curr_coll)) acc
+            (zero? r) (let [psize (/ sz 3)
+                            [p1 p2 p3 :as all] (partition psize curr_coll)]
+                        (println "Divisible by 3")
+                        (prn curr_coll)
+                        (prn p1 p2 p3)
+                        (cond (> (sum p1) (sum p2)) (recur (inc acc) p2)
+                              (< (sum p1) (sum p2)) (recur (inc acc) p1)
+                              :else (recur (inc acc) p3)))
+            :else (let [psize (if (< (/ (- sz r) 3) 3) 1
+                                  (/ (- sz r) 3)) ;; Always divisible by 3
+                        [p1 p2] (partition psize (take (- sz r) curr_coll))
+                        ;; This becomes a mess when the piles are
+                        ;; smaller than 3...
+                        p3 (drop (* 2 psize) curr_coll)]
+                    (println "Not divisible by three")
+                    (println "psize was: " (str psize))
+                    (prn curr_coll)
+                    (prn p1 p2 p3)
+                    (cond (> (sum p1) (sum p2)) (recur (inc acc) p2)
+                          (< (sum p1) (sum p2)) (recur (inc acc) p1)
+                          :else (recur (inc acc) p3)))))))
+
+;; Exercise 4.18
+;; This doesn't work as it just keeps computing differences of numbers
+;; which never have a difference of 1 (returns Rational types)
+(defn sum-ints [a b]
+  (if (= 1 (- b a)) 0
+      (let [interval (- b a)
+            mid (/ interval 2)
+            a1 a
+            b1 mid
+            a2 (inc mid)
+            b2 b]
+        (prn a1 b1 a2 b2)
+        (+ (sum-ints a1 b1) (sum-ints a2 b2)))))
+
