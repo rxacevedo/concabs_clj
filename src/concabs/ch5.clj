@@ -97,6 +97,29 @@
                 (= f +) 0
                 :else (throw (Exception. "No default available for this fn.")))
         falling-combine (fn combine [transform] (if (zero? hi) d
-                                              (f (transform hi)
-                                                 ((combine-down-2 f (dec hi)) transform))))]
+                                                   (f (transform hi)
+                                                      ((combine-down-2 f (dec hi)) transform))))]
     #(falling-combine %)))
+
+(defn sum-of-squares [hi]
+  "Returns the sum of squares from hi down to zero."
+  ((combine-down-2 + hi) #(math/expt % 2)))
+
+(defn sum-of-digits [n]
+  (loop [acc 0 m n]
+    (if (zero? m) acc
+        (let [digit (mod m 10)
+              divisible (- m digit)]
+          (recur (+ acc digit) (/ divisible 10))))))
+
+;; This is wrong
+(defn make-verifier [f m]
+  "Returns the wrong thing."
+  (let [rtn-func (fn [num default]
+          (loop [acc default valid false curr-val m]
+            (cond (zero? num) valid
+                  (false? valid) valid
+                  :else (let [digit (mod num m)
+                              happy-val (- num digit)]
+                          (recur (f acc digit) (zero? digit) (/ happy-val 10))))))]
+    #(rtn-func %1 %2)))
