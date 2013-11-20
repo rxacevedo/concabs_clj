@@ -101,11 +101,24 @@
                                                       ((combine-down-2 f (dec hi)) transform))))]
     #(falling-combine %)))
 
+(defn combine-down-3 [f m]
+  "Takes a function f and a high bound m where f is applied from m down to zero.
+   Returns a new function that takes t-fn (transform) and r-fn (reduce) that
+   are used to combine (t-fn m) with (combine-down-3 f (r-fn m))."
+  (let [d (cond (= f +) 0
+                (= f *) 1
+                :else (throw (Exception. "No default available for this fn.")))
+        inner (fn [t-fn r-fn]
+                (if (zero? m) d
+                    (f (t-fn m) ((combine-down-3 f (r-fn m)) t-fn r-fn))))]
+    inner))
+
 (defn sum-of-squares [hi]
   "Returns the sum of squares from hi down to zero."
-  ((combine-down-2 + hi) #(math/expt % 2)))
+  ((combine-down-3 + hi) #(math/expt % 2) dec))
 
 (defn sum-of-digits [n]
+  "Returns the sum of the digits in a number"
   (loop [acc 0 m n]
     (if (zero? m) acc
         (let [digit (mod m 10)
@@ -113,13 +126,26 @@
           (recur (+ acc digit) (/ divisible 10))))))
 
 ;; This is wrong
+;; (defn make-verifier [f m]
+;;   "Returns the wrong thing."
+;;   (let [inner (fn [num default]
+;;                 (loop [acc default
+;;                        valid false
+;;                        curr-val m]
+;;                      (cond (zero? num) valid
+;;                            (false? valid) valid
+;;                            :else (let [digit (mod num m)
+;;                                        happy-val (- num digit)]
+;;                                    (recur (f acc digit) (zero? digit) (/ happy-val 10))))))]
+;;     #(inner %1 %2)))
+
+;; Desired API:
+;; ((make-verifier * 11) 0262010771) ; true
 (defn make-verifier [f m]
-  "Returns the wrong thing."
-  (let [rtn-func (fn [num default]
-          (loop [acc default valid false curr-val m]
-            (cond (zero? num) valid
-                  (false? valid) valid
-                  :else (let [digit (mod num m)
-                              happy-val (- num digit)]
-                          (recur (f acc digit) (zero? digit) (/ happy-val 10))))))]
-    #(rtn-func %1 %2)))
+  (let [inner (fn [num]
+                (loop [acc 1 n num]
+                  (if (zero? n) acc
+                      (let [digit (mod n 10)
+                            happy-val (- n digit)]
+                        (recur (f acc digit) happy-val)))))]
+    (zero? (mod #(inner %1 %2) m))))
