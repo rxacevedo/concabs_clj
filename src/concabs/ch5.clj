@@ -141,11 +141,23 @@
 
 ;; Desired API:
 ;; ((make-verifier * 11) 0262010771) ; true
+;; TODO: (mod 0262010771 10) returns 3 when it should return 1, which
+;; is causing the total to be calculated incorrectly. This needs to be
+;; 0: (mod ((make-verifier * 11) 0262010771) 11)
+;;
+;; Welp, looks like this is an issue with Java's constructor for Long
+;; (or any Number type) as when a number with a leading 0 is passed,
+;; it returns some other number. Test (Long. 0262010771)
 (defn make-verifier [f m]
   (let [inner (fn [num]
-                (loop [acc 1 n num]
+                (loop [acc 0
+                       n num
+                       c 1]
                   (if (zero? n) acc
                       (let [digit (mod n 10)
                             happy-val (- n digit)]
-                        (recur (f acc digit) happy-val)))))]
-    (zero? (mod #(inner %1 %2) m))))
+                        (recur (+ acc (f c digit)) (/ happy-val 10) (inc c))))))]
+    ;; (zero? (mod #(inner %) m)) ;; This doesn't work because #() is
+    ;; type fn
+    inner
+    ))
