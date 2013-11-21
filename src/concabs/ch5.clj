@@ -76,7 +76,7 @@
   (let [repeated (fn [b n] (loop [b b n n]
                             (if (zero? n) b
                                 (recur (f b) (dec n)))))]
-    #(repeated %1 %2)))
+    repeated))
 
 (def repeatedly-square (make-repeated-version-of square))
 
@@ -96,10 +96,10 @@
   (let [d (cond (= f *) 1
                 (= f +) 0
                 :else (throw (Exception. "No default available for this fn.")))
-        falling-combine (fn combine [transform] (if (zero? hi) d
+        inner (fn [transform] (if (zero? hi) d
                                                    (f (transform hi)
                                                       ((combine-down-2 f (dec hi)) transform))))]
-    #(falling-combine %)))
+    inner))
 
 (defn combine-down-3 [f m]
   "Takes a function f and a high bound m where f is applied from m down to zero.
@@ -113,9 +113,17 @@
                     (f (t-fn m) ((combine-down-3 f (r-fn m)) t-fn r-fn))))]
     inner))
 
+(defn factorial [n]
+  "Returns the factorial of n. Uses the combine-down function."
+  ((combine-down-3 * n) #(Long. %) dec))
+
 (defn sum-of-squares [hi]
   "Returns the sum of squares from hi down to zero."
-  ((combine-down-3 + hi) #(math/expt % 2) dec))
+  ((combine-down-3 + hi) square dec))
+
+(defn sum-of-cubes [hi]
+  "Returns the sum of cubes from hi down to zero."
+  ((combine-down-3 + hi) cube dec))
 
 (defn sum-of-digits [n]
   "Returns the sum of the digits in a number"
@@ -125,39 +133,27 @@
               divisible (- m digit)]
           (recur (+ acc digit) (/ divisible 10))))))
 
-;; This is wrong
-;; (defn make-verifier [f m]
-;;   "Returns the wrong thing."
-;;   (let [inner (fn [num default]
-;;                 (loop [acc default
-;;                        valid false
-;;                        curr-val m]
-;;                      (cond (zero? num) valid
-;;                            (false? valid) valid
-;;                            :else (let [digit (mod num m)
-;;                                        happy-val (- num digit)]
-;;                                    (recur (f acc digit) (zero? digit) (/ happy-val 10))))))]
-;;     #(inner %1 %2)))
-
-;; Desired API:
-;; ((make-verifier * 11) 0262010771) ; true
 ;; TODO: (mod 0262010771 10) returns 3 when it should return 1, which
-;; is causing the total to be calculated incorrectly. This needs to be
-;; 0: (mod ((make-verifier * 11) 0262010771) 11)
+;; is causing the total to be calculated incorrectly. 
 ;;
 ;; Welp, looks like this is an issue with Java's constructor for Long
 ;; (or any Number type) as when a number with a leading 0 is passed,
 ;; it returns some other number. Test (Long. 0262010771)
 (defn make-verifier [f m]
+  "Returns a verifier for a type of ID number. Takes f and m and returns a fn
+   that calculates the sum of digits with f applied to each and checks that the
+   result is divisible by m. If it is divisible by m, it is valid. NOTE: This
+   does not work with numbers that have leading zeros currently."
   (let [inner (fn [num]
                 (loop [acc 0
                        n num
                        c 1]
-                  (if (zero? n) acc
+                  (if (zero? n) (let [truthiness (zero? (mod acc m))]
+                                  truthiness)
+                      ;; TODO: Make this more general such that it is
+                      ;; not coupled to using mod or to combining
+                      ;; digit with c (to allow for UPC/CC numbers.
                       (let [digit (mod n 10)
                             happy-val (- n digit)]
                         (recur (+ acc (f c digit)) (/ happy-val 10) (inc c))))))]
-    ;; (zero? (mod #(inner %) m)) ;; This doesn't work because #() is
-    ;; type fn
-    inner
-    ))
+    inner))
