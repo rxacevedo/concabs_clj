@@ -137,12 +137,10 @@
               divisible (- m digit)]
           (recur (+ acc digit) (/ divisible 10))))))
 
-;; TODO: (mod 0262010771 10) returns 3 when it should return 1, which
-;; is causing the total to be calculated incorrectly. 
-;;
-;; Welp, looks like this is an issue with Java's constructor for Long
-;; (or any Number type) as when a number with a leading 0 is passed,
-;; it returns some other number. Test (Long. 0262010771)
+;; TODO: This does not work correctly for numbers with leading zeros.
+;; (mod 0262010771 10) returns 3 when it should return 1, which is causing
+;; the total to be calculated incorrectly. This is because in Java, a leading
+;; zero signifies an octal literal. Ex: (Long. 0262010771) returns 46666233.
 (defn make-verifier [f m]
   "Returns a verifier for a type of ID number. Takes f and m and returns a fn
    that calculates the sum of digits with f applied to each and checks that the
@@ -152,12 +150,31 @@
                 (loop [acc 0
                        n num
                        c 1]
-                  (if (zero? n) (let [truthiness (zero? (mod acc m))]
-                                  truthiness)
-                      ;; TODO: Make this more general such that it is
-                      ;; not coupled to using mod or to combining
-                      ;; digit with c (to allow for UPC/CC numbers.
+                  (if (zero? n) acc
                       (let [digit (mod n 10)
                             happy-val (- n digit)]
                         (recur (+ acc (f c digit)) (/ happy-val 10) (inc c))))))]
-    inner))
+    #(if (zero? (mod (inner %) m)) true
+      false)))
+
+;; Ex: (check-isbn 8090273416)
+(def check-isbn
+  "Returns true if the argument is a valid ISBN-10 number."
+  (make-verifier * 11))
+
+;; Ex: (check-upc 663595981057)
+(def check-upc
+  "Returns true if the argument is a valid UPC code."
+  (make-verifier #(if (even? %1) (* 3 %2) %2) 10))
+
+;; Ex: (check-credit-card 4111111111111111)
+(def check-credit-card
+  "Returns true if the argument is a valid credit card number."
+  (make-verifier #(if (odd? %1) %2
+                      (if (< %2 5) (* 2 %2)
+                          (inc (* 2 %2)))) 10))
+
+;; Ex: (check-pmo-serial 48077462766)
+(def check-pmo-serial
+  "Returns true if the argument is a valid postal money order serial number."
+  (make-verifier #(if (= 1 %1) (- 0 %2) %2) 9))
