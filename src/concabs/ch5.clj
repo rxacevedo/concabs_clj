@@ -80,9 +80,10 @@
 
 (def repeatedly-square (make-repeated-version-of square))
 
-(defn fermat [n]
+(def fermat
   "Returns the nth Fermat number, starting at zero."
-  (inc (repeatedly-square 2 n)))
+  (let [rt-fn (comp inc repeatedly-square)]
+    (partial rt-fn 2)))
 
 ;; Exercise 5.8
 (defn combine-down [f hi]
