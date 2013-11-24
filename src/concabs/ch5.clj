@@ -63,13 +63,25 @@
 (defn mod-expt-? [b e m]
   (combine-4 #(mod* %1 %2 modulus) b e 1))
 
-;; Exercise 5.7
-(defn make-exponentiater [e]
-  #(math/expt % e))
+;; Exercise 5.21
+(defn make-generator [f]
+  (let [inner (fn [a] #(f % a))]
+    inner))
+
+;; Exercise 5.7 (revised)
+(def make-exponentiater
+  (make-generator math/expt))
+
+(def make-multiplier
+  (make-generator *))
 
 (def square (make-exponentiater 2))
 
 (def cube (make-exponentiater 3))
+
+(def doubler (make-multiplier 2))
+
+(def tripler (make-multiplier 3))
 
 ;; Exercise 5.7 continued
 (defn make-repeated-version-of [f]
