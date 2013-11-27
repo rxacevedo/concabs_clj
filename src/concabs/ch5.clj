@@ -191,3 +191,32 @@
 (def check-pmo-serial
   "Returns true if the argument is a valid postal money order serial number."
   (make-verifier #(if (= 1 %1) (- 0 %2) %2) 9))
+
+;; Ex: 5.16
+(defn compose [f g]
+  #(g (f %)))
+
+;; Ex 5.17
+;; This is the easy way to get the actual smallest VALUE
+(defn integer-in-range-where-smallest [f a b]
+  (reduce min (map f (range a (inc b)))))
+
+;; Ex 5.17 actual implementation
+(defn integer-in-range-where-smallest-harder [f a b]
+  (loop [coll (range a (inc b))
+         smallest (first coll)]
+    (if (seq coll)
+      (let [x (first coll)
+            y (f x)
+            prior-y (f smallest)]
+        (if (< y prior-y) (recur (rest coll) x)
+            (recur (rest coll) smallest)))
+      smallest)))
+
+;; Ex. 5.23
+(defn make-averaged-procedure [f g]
+  #(/ (+ (f %) (g %)) 2))
+
+;; Ex 5.23 cont'd
+(def new-procedure
+  (make-averaged-procedure #(* 2 %) #(* % %)))
