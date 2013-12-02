@@ -23,14 +23,14 @@
   (if (zero? n) 0
       (+ n (sum-of-first (dec n)))))
 
-;; Beginnign of Ch2 examples, made iterative
+;; Beginning of ch2 examples, made iterative
 (defn factorial
   [n]
   "Compute factorial of n"
-  (loop [b n a 1]
+  (loop [a 1 b n]
     (if (<= b 0)
       a
-      (recur (- b 1) (* a b)))))
+      (recur (* a b) (dec b)))))
 
 (defn num-digits [n]
   "Print how many digits in a number n"

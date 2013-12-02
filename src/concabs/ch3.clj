@@ -70,13 +70,12 @@
 
 (defn find-survivors [size]
   "Find survivors in a group of size size per the Josephus problem"
-  (let [survivors nil]
-    (loop [pos size survivors nil]
-      (if (>= pos 1)
-        (recur (dec pos) (if (survives? pos size)
-                           (conj survivors pos)
-                           survivors))
-        (println (str "Survivors: " (clojure.string/join ", " survivors)))))))
+  (loop [pos size survivors nil]
+    (if (>= pos 1)
+      (recur (dec pos) (if (survives? pos size)
+                         (conj survivors pos)
+                         survivors))
+      (str "Survivors: " (clojure.string/join ", " survivors)))))
 
 ;; Exercise 3.17 Concabs
 (defn falling-factorial [n k]
