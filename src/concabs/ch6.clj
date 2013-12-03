@@ -46,6 +46,8 @@
   ([game-state]
      (println (info game-state))
      (println "Please enter the pile and number of coins: ")
+     ;; TODO: Handle NullPointerException when parseInt is run over
+     ;; empty string.
      (let [[pile-number num-coins] (map #(Integer/parseInt (str %)) (re-seq #"[0-9]" (read-line)))]
        (human-move game-state pile-number num-coins)))
   ([game-state pile-number num-coins]
