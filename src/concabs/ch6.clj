@@ -41,6 +41,7 @@
 (defn over? [game-state]
   "Returns true if all colls/piles are empty (game is over)."
   ;; (reduce #(and %1 %2) (map empty? game-state))
+  ;; TODO: This assumes that the game-state is a seq
   (zero? (reduce + (map #(size-of-pile game-state %) (range 0 (count game-state)))))
   )
 
