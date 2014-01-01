@@ -190,14 +190,14 @@
    (reduce + (range a (inc b)))"
   (let [range (- b a)]
     (cond (zero? (- b a)) a
-          (zero? (mod range 2))(let [a1 a
-                                     b1 (+ a (/ range 2))
-                                     a2 (inc b1)
-                                     b2 b]
-                                 (+ (sum-ints a1 b1) (sum-ints a2 b2)))
-          :else                (let [a1 a
-                                     b1 (+ a (/ (dec range) 2))
-                                     a2 (inc b1)
-                                     b2 b]
-                                 (+ (sum-ints a1 b1) (sum-ints a2 b2))))))
+          (zero? (mod range 2)) (let [a1 a
+                                      b1 (+ a (/ range 2))
+                                      a2 (inc b1)
+                                      b2 b]
+                                  (+ (sum-ints a1 b1) (sum-ints a2 b2)))
+          :else                 (let [a1 a
+                                      b1 (+ a (/ (dec range) 2))
+                                      a2 (inc b1)
+                                      b2 b]
+                                  (+ (sum-ints a1 b1) (sum-ints a2 b2))))))
 

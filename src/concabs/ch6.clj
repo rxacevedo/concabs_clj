@@ -1,6 +1,7 @@
 (ns concabs.ch6
   (:gen-class)
-  (:use [cemerick.pomegranate :only (add-dependencies)]))
+  ;; (:use [cemerick.pomegranate :only (add-dependencies)])
+  )
 
 ;; Chapter 6 - Compound Data and Data Abstraction
 
@@ -25,12 +26,14 @@
 (defn remove-coins-from-pile [game-state pile-number num-coins]
   "Acquires position of pile via index (pile-number) and returns
    a subvec from 0 to (count - num-coins) assoc'd to game-state."
-  (let [pile (nth game-state pile-number)
-        sz (count pile)]
-    (if (> num-coins sz)
-      (throw (Exception. (str "Not enough coins in pile " pile-number " to remove " num-coins " coins.")))
-      (let [new-sz (- sz num-coins)]
-        (assoc game-state pile-number (subvec pile 0 new-sz))))))
+  (try
+    (let [pile (nth game-state pile-number)
+          sz (count pile)]
+      (if (> num-coins sz)
+        (throw (Exception. (str "Not enough coins in pile " pile-number " to remove " num-coins " coins.")))
+        (let [new-sz (- sz num-coins)]
+          (assoc game-state pile-number (subvec pile 0 new-sz)))))
+    (catch IndexOutOfBoundsException e (str "caught exception: " (.getMessage e)))))
 
 (defn info [game-state]
   "Returns the status of game-state."
@@ -40,9 +43,9 @@
 
 (defn over? [game-state]
   "Returns true if all colls/piles are empty (game is over)."
-  ;; (reduce #(and %1 %2) (map empty? game-state))
+  (reduce #(and %1 %2) (map empty? game-state))
   ;; TODO: This assumes that the game-state is a seq
-  (zero? (reduce + (map #(size-of-pile game-state %) (range 0 (count game-state)))))
+  ;; (zero? (reduce + (map #(size-of-pile game-state %) (range 0 (count game-state)))))
   )
 
 (defn human-move

@@ -4,16 +4,15 @@
 ;; Exercise 2.5
 (defn mult [a b]
   "Multiplication in terms of addition"
-  (cond (zero? a) 0
-        (zero? b) 0
-        (neg? a) (- 0 (mult (- 0 a) b))
-        (neg? b) (- 0 (mult a (- 0 b)))
-        :else (+ a (mult a (dec b)))))
+  (let [or-zero? #(or (zero? %1) (zero? %2))]
+    (cond (or-zero? a b) 0
+          (neg? a) (- 0 (mult (- 0 a) b))
+          (neg? b) (- 0 (mult a (- 0 b)))
+          :else (+ a (mult a (dec b))))))
 
 ;; Around 2.3
 (defn my-quot [a b]
   (cond (or (< a b ) (zero? a)) 0
-        ;; (zero? b) (throw (Exception. "Can't divide by zero!"))
         (neg? a) (- 0 (my-quot (- 0 a) b))
         (neg? b) (- 0 (my-quot a (- 0 b)))
         :else (inc (my-quot (- a b) b))))

@@ -23,7 +23,6 @@
   "Returns true if b divides evenly into a"
   (zero? (mod a b)))
 
-
 ;; 3.3 Concabs
 (defn perfect? [n]
   "Determine whether n is a perfect number"
@@ -84,3 +83,12 @@
     (if (zero? k) acc
         (recur (* acc n) (dec n) (dec k)))))
 
+;; Fun stuff
+
+(def fibs
+  "Lazy Fibonacci sequence."
+  (lazy-cat [0 1] (map + fibs (rest fibs))))
+
+(def fermats
+  "Lazy Fermat sequence."
+  (map #(inc (math/expt 2 (math/expt 2 %))) (iterate inc 0)))

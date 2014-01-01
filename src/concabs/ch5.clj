@@ -64,9 +64,12 @@
   (combine-4 #(mod* %1 %2 modulus) b e 1))
 
 ;; Exercise 5.21
+
 (defn make-generator [f]
-  (let [inner (fn [a] #(f % a))]
-    inner))
+  (fn [a]
+    ;; (println (str "a: " a)) ;; Variable a is bound before % because
+    ;; the closure is within the fn
+    #(f % a)))
 
 ;; Exercise 5.7 (revised)
 (def make-exponentiater
@@ -85,10 +88,10 @@
 
 ;; Exercise 5.7 continued
 (defn make-repeated-version-of [f]
-  (let [repeated (fn [b n] (loop [b b n n]
-                            (if (zero? n) b
-                                (recur (f b) (dec n)))))]
-    repeated))
+  #(loop [b %1
+          c %2]
+    (if (zero? c) b
+        (recur (f b) (dec c)))))
 
 (def repeatedly-square (make-repeated-version-of square))
 
@@ -129,6 +132,14 @@
                 (if (zero? m) d
                     (f (t-fn m) ((combine-down-3 f (r-fn m)) t-fn r-fn))))]
     inner))
+
+(defn combine-down-4 [seed]
+  "Not sure why I didnt just return the anonymous function directly."
+  #(loop [acc seed
+          f %1
+          hi %2]
+     (if (zero? hi) acc
+         (recur (f acc hi) f (dec hi)))))
 
 (defn factorial [n]
   "Returns the factorial of n. Uses the combine-down function."
@@ -220,3 +231,11 @@
 ;; Ex 5.23 cont'd
 (def new-procedure
   (make-averaged-procedure #(* 2 %) #(* % %)))
+
+(defn digits [n]
+               (loop [acc []
+                      n n
+                      digit (mod n 10)]
+                 (prn acc)
+                 (if (< n 10) (reduce + (conj acc n))
+                     (recur (conj acc digit) (- n digit) (mod n 10)))))
