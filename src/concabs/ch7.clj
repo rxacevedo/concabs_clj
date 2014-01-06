@@ -86,3 +86,23 @@
           c2 (drop half coll)]
       (lazy-cat (mrg-sort c1) (mrg-sort c2)))
     coll))
+
+;; To plot in Incanter:
+;; TODO: Wrap this in a method or use as a start for a package that
+;; can be imported into other projects for easy empircal analysis.
+;; (let [coll-sizes (map #(expt 2 %) (range 0 15))
+;;                     methods ['mrg-sort 'sort]]                  
+;;                 (-> (for [x methods
+;;                           y coll-sizes
+;;                           :let [z (binding [*out* (java.io.StringWriter.)]
+;;                                     (time ((resolve x) (shffl (range 0 y))))
+;;                                     (->> (.. *out* toString)
+;;                                          (re-find #"\d+.\d+")
+;;                                         Double/parseDouble))]] [x y z])
+;;                     to-dataset
+;;                     (with-data 
+;;                       (view (line-chart :col-1 :col-2 
+;;                                         :group-by :col-0 
+;;                                         :x-label "coll-size" 
+;;                                         :y-label "runtime (ms)" 
+;;                                         :legend true)))))
