@@ -10,7 +10,7 @@
 
 (defn rvrs [coll]
   "Reverse using add-to-end.
-   O(n^2) aka horrible."
+   O(n^2)."
   (if (seq coll)
     (add-to-end (rvrs (rest coll)) (first coll))))
 
@@ -32,6 +32,57 @@
         (recur (rest c) (f acc (first c)))
         acc))))
 
+;; Messing around
+(defn repeatedly-fn [f]
+  (fn [base times]
+    (loop [acc base
+           i times]
+      (if (zero? i) acc
+          (recur (f acc) (dec i))))))
+
+(defn combine [f]
+  (fn [base exponent seed]
+    (loop [acc seed
+           i exponent]
+      (if (zero? i) acc
+          (recur (f acc base) (dec i))))))
+
+(defn square [x] (* x x))
+
 (def my-sum #((foldl 0) + %))
 
 (def my-factorial #((foldl 1) * (range 1 (inc %))))
+
+(defn intrlv [c1 c2]
+  "Interleaves two collections such that the first element is the car of c1."
+  (if (seq c1)
+    (cons (first c1) (intrlv c2 (rest c1)))
+    c2))
+
+;; (defn shffl [coll size]
+;;   "Shuffles a collection by splitting it into halves and interleaving them using intrlv."
+;;   (let [half (quot (inc size) 2)]
+;;     (intrlv (take half coll) (drop half coll))))
+
+(defn shffl [coll]
+  "Shuffles a collection by splitting it into halves and interleaving them using intrlv."
+  (let [half (quot (inc (count coll)) 2)]
+    (intrlv (take half coll) (drop half coll))))
+
+(defn mrg [c1 c2]
+  "Merges two collections with the lesser car of the two cons'd to the recursive mrg of
+   its cdr and the other list."
+  (cond (not (seq c1)) c2
+        (not (seq c2)) c1
+        (< (first c1) (first c2)) (cons (first c1) (mrg (rest c1) c2))
+        :else (cons (first c2) (mrg c1 (rest c2)))))
+
+(defn mrg-sort [coll]
+  "Lazy merge-sort that is actually beating clojure.core/sort (Arrays.sort) in this case,
+   maybe because Java 1.7 uses timsort?"
+  (if (seq (rest coll))
+    (let [half (quot (inc (count coll)) 2)
+          c1 (take half coll)
+          c2 (drop half coll)]
+      (lazy-cat (mrg-sort c1) (mrg-sort c2)))
+    coll))
