@@ -114,18 +114,32 @@
                   acc))]
     (inner coll '())))
 
-(defn portal-1 [coll]
-  (if (seq coll)
-    (portal-2 (rest coll))
-    coll))
+;; (defn portal-1 [coll]
+;;   (if (seq coll)
+;;     (portal-2 (rest coll))
+;;     coll))
 
-(defn portal-2 [coll]
-  (if (seq coll)
-    (cons (first coll) (portal-1 (rest coll)))
-    coll))
+;; (defn portal-2 [coll]
+;;   (if (seq coll)
+;;     (cons (first coll) (portal-1 (rest coll)))
+;;     coll))
 
+;; Excercise 7.15
 (defn count-combos [prize-list amount]
-  (cond (not (seq prize-list)) amount
-        (<= amount 0) 0
+  "Returns the number of possible combinations of prizes that one can buy
+   given a list of prize values and a number of tickets."
+  (cond (or (nil? (seq prize-list)) (< amount 0)) 0
+        (zero? amount) 1
         :else (+ (count-combos prize-list (- amount (first prize-list)))
                  (count-combos (rest prize-list) amount))))
+
+(defn gen-prize-list [hi prize-counts]
+  "Returns a list of prizes in a format that is appropriate for count-combos."
+  (let [tuples (loop [i hi
+                      p prize-counts
+                      coll []]
+                 (if (seq p)
+                   (recur (dec i) (rest p) (conj coll [i (first p)]))
+                   coll))]
+    (flatten (map #(let [[a b] %]
+                     (repeat b a)) tuples))))
