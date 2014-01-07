@@ -106,3 +106,26 @@
 ;;                                         :x-label "coll-size" 
 ;;                                         :y-label "runtime (ms)" 
 ;;                                         :legend true)))))
+
+(defn rvrs-2 [coll]
+  (let [inner (fn [c acc]
+                (if (seq c)
+                  (recur (rest c) (cons (first c) acc))
+                  acc))]
+    (inner coll '())))
+
+(defn portal-1 [coll]
+  (if (seq coll)
+    (portal-2 (rest coll))
+    coll))
+
+(defn portal-2 [coll]
+  (if (seq coll)
+    (cons (first coll) (portal-1 (rest coll)))
+    coll))
+
+(defn count-combos [prize-list amount]
+  (cond (not (seq prize-list)) amount
+        (<= amount 0) 0
+        :else (+ (count-combos prize-list (- amount (first prize-list)))
+                 (count-combos (rest prize-list) amount))))
