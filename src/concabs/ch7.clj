@@ -114,32 +114,52 @@
                   acc))]
     (inner coll '())))
 
-;; (defn portal-1 [coll]
-;;   (if (seq coll)
-;;     (portal-2 (rest coll))
-;;     coll))
+(declare odd-part)
 
-;; (defn portal-2 [coll]
-;;   (if (seq coll)
-;;     (cons (first coll) (portal-1 (rest coll)))
-;;     coll))
+(defn even-part [coll]
+  (if (seq coll)
+    (odd-part (rest coll))
+    coll))
+
+(defn odd-part [coll]
+  (if (seq coll)
+    (cons (first coll) (even-part (rest coll)))
+    coll))
 
 ;; Excercise 7.15
+;; This same method can be used to solve 7.19 by simply not repeating
+;; the elements (do not pass to gen-prize-list)
 (defn count-combos [prize-list amount]
   "Returns the number of possible combinations of prizes that one can buy
    given a list of prize values and a number of tickets."
-  (cond (or (nil? (seq prize-list)) (< amount 0)) 0
+  (cond (not (seq prize-list)) 0
+        (< amount 0) 0
         (zero? amount) 1
         :else (+ (count-combos prize-list (- amount (first prize-list)))
                  (count-combos (rest prize-list) amount))))
 
-(defn gen-prize-list [hi prize-counts]
-  "Returns a list of prizes in a format that is appropriate for count-combos."
-  (let [tuples (loop [i hi
-                      p prize-counts
-                      coll []]
-                 (if (seq p)
-                   (recur (dec i) (rest p) (conj coll [i (first p)]))
-                   coll))]
-    (flatten (map #(let [[a b] %]
-                     (repeat b a)) tuples))))
+;; LOL why did I do this???
+;; (defn gen-prize-list [hi prize-counts]
+;;   "Returns a list of prizes in a format that is appropriate for count-combos."
+;;   (let [tuples (loop [i hi
+;;                       p prize-counts
+;;                       coll []]
+;;                  (if (seq p)
+;;                    (recur (dec i) (rest p) (conj coll [i (first p)]))
+;;                    coll))]
+;;     (flatten (map #(let [[a b] %]
+;;                      (repeat b a)) tuples))))
+
+(defn gen-prize-list
+  ([prize-counts]
+     "Returns a list of prizes in a format that is appropriate for count-combos."
+     (gen-prize-list (count prize-counts) prize-counts))
+  ([hi prize-counts]
+     "Returns a list of prizes in a format that is appropriate for count-combos."
+     (mapcat (fn [a b] (repeat b a)) (iterate dec hi) prize-counts)))
+
+;; Ex 7.18
+;; TODO: This is wrong
+;; (defn count-combos-no-greater-than-max [prize-list amount]
+;;   (for [amt (take amount (iterate dec amount))]
+;;     (count-combos (gen-prize-list amt prize-list) amt)))
