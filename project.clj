@@ -7,4 +7,5 @@
                  [org.clojure/math.numeric-tower "0.0.2"]
                  [com.cemerick/pomegranate "0.2.0"]
                  [incanter "1.5.4"]]
+  :java-source-paths ["src/java"]
   :main concabs.core)

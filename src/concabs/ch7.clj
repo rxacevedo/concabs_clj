@@ -84,14 +84,14 @@
     (let [half (quot (inc (count coll)) 2)
           c1 (take half coll)
           c2 (drop half coll)]
-      (lazy-cat (mrg-sort c1) (mrg-sort c2)))
+      (mrg (mrg-sort c1) (mrg-sort c2)))
     coll))
 
 ;; To plot in Incanter:
 ;; TODO: Wrap this in a method or use as a start for a package that
 ;; can be imported into other projects for easy empircal analysis.
 ;; (let [coll-sizes (map #(expt 2 %) (range 0 15))
-;;                     methods ['mrg-sort 'sort]]                  
+;;                     methods ['mrg-sort 'sort]]
 ;;                 (-> (for [x methods
 ;;                           y coll-sizes
 ;;                           :let [z (binding [*out* (java.io.StringWriter.)]
@@ -100,11 +100,11 @@
 ;;                                          (re-find #"\d+.\d+")
 ;;                                         Double/parseDouble))]] [x y z])
 ;;                     to-dataset
-;;                     (with-data 
-;;                       (view (line-chart :col-1 :col-2 
-;;                                         :group-by :col-0 
-;;                                         :x-label "coll-size" 
-;;                                         :y-label "runtime (ms)" 
+;;                     (with-data
+;;                       (view (line-chart :col-1 :col-2
+;;                                         :group-by :col-0
+;;                                         :x-label "coll-size"
+;;                                         :y-label "runtime (ms)"
 ;;                                         :legend true)))))
 
 (defn rvrs-2 [coll]
@@ -158,8 +158,49 @@
      "Returns a list of prizes in a format that is appropriate for count-combos."
      (mapcat (fn [a b] (repeat b a)) (iterate dec hi) prize-counts)))
 
+(def prize-list (gen-prize-list [9 3 2 4 3 4 3 3 4 2]))
+
 ;; Ex 7.18
-;; TODO: This is wrong
-;; (defn count-combos-no-greater-than-max [prize-list amount]
-;;   (for [amt (take amount (iterate dec amount))]
-;;     (count-combos (gen-prize-list amt prize-list) amt)))
+(defn count-combos-no-greater-than-max [prize-list amount]
+  (->> (for [amt (take amount (iterate dec amount))
+            :while (> amt -1)]
+        (count-combos  prize-list amt))
+       (reduce +)))
+
+;; TODO: Use filter on this one
+(defn count-combos-no-repeats [prize-list amt])
+
+
+;; Ex. 7.39: Prove using induction on n that the following procedure
+;; produces a list of length n
+(defn sevens [n]
+  (if (= n 0) '()
+      (cons 7 (sevens (- n 1)))))
+
+;; I. Base case: (sevens k) terminates with the value of '(), or 0 ks.
+;; II. Inductive hypothesis: Assume that (sevens k) terminates with a list
+;; of size k for all k in the range 0 <= k < n.
+;; III. Inductive step: Consider evaluating (sevens n) with n > 0. This wil
+;; terminate if (sevens (- n 1)) terminates and will have the same
+;; value as (cons 7 (sevens (- n 1))). Because 0 <= n - 1 < n, we
+;; can therefore assume via the induction hypothesis that
+;; (sevens (- n 1)) does terminate with a list of size (n - 1).
+;; Therefore, by mathematical induction on n, (sevens n) terminates with
+;; a list of size n for any nonnegative integer n.
+
+;; Need to figure out a way to make this work for lists with
+;; duplicates, only approach I currently have that works is to only
+;; filter on (< n pivot) and (> n pivot), which would exclude
+;; duplicates.
+;; TODO: This is shit, should be faster than merge-sort in practice
+(defn quick-sort [coll]
+  (if-not (seq (rest coll))
+    coll
+    (let [size (count coll)
+          mid-index (quot size 2)
+          pivot (nth coll mid-index)
+          [c1 c2] [(filter (fn [n] (< n pivot)) coll)
+                   (filter (fn [n] (> n pivot)) coll)]]
+      (concat (quick-sort c1)
+              (list pivot)
+              (quick-sort c2)))))
